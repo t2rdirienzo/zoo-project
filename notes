@@ -1,0 +1,41 @@
+
+alias ll='ls -ltr'
+
+rsync -av /project/zoo-project/zoo-project/zoo-kernel/* .
+make &&  \
+cp zoo_loader.cgi /var/www/zoo-bin/zoo_loader.cgi && \
+cp libzoo_service.so /usr/local/lib/libzoo_service.so && \
+cp libzoo_service.so /usr/local/lib/libzoo_service.so.1.5
+
+
+
+initAllEnvironment
+
+  char newPath[1024];
+  memset(newPath,0,1024);
+  sprintf (newPath, "%s", conf_dir);
+  map *rdrMAP = getMapFromMaps (m, "eoepcaUser", "user");
+  if (rdrMAP){
+    sprintf (newPath, "%s/%s", conf_dir,rdrMAP->value);
+   // fprintf(stderr,"rdr a5 user:%s \n", rdrMAP->value);
+  }
+
+
+curl -L  "http://localhost:8888/zoo/?service=WPS&version=1.0.0&request=DescribeProcess&identifier=myservice"  -H "eoepca-user: rdr"
+curl -L  "http://localhost:8888/zoo/?service=WPS&version=1.0.0&request=GetCapabilities"
+curl  -v  -s -L "http://localhost:8888/wps3/processes/myservice" -H "accept: application/json" -H "eoepca-user: rdr"
+
+
+  dumpMaps(m);
+  char conf_dir[1024];
+  memset(conf_dir,0,1024);
+  sprintf(conf_dir,"/zooservices/rdr");
+
+ 
+
+addUserToMap
+
+  fetchServicesForDescription
+
+
+  recursReaddirF

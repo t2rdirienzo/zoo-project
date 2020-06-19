@@ -1839,6 +1839,7 @@ void printProcessResponse(maps* m,map* request, int pid,service* serv,const char
       int statRes;
       char file_path[1024];
       if(cwdMap!=NULL){
+          fprintf(stderr,"rdr a1\n");
 	sprintf(file_path,"%s/GetStatus.zcfg",cwdMap->value);
       }else{
 	char ntmp[1024];
@@ -1847,6 +1848,7 @@ void printProcessResponse(maps* m,map* request, int pid,service* serv,const char
 #else
 	_getcwd(ntmp,1024);
 #endif
+fprintf(stderr,"rdr a2\n");
 	sprintf(file_path,"%s/GetStatus.zcfg",ntmp);
       }
       statRes=stat(file_path,&myFileInfo);

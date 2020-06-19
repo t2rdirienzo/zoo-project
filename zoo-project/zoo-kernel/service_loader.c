@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
     stdout = freopen("/dev/null" , "w" , stdout);
     while ((dp = readdir(dirp)) != NULL)
       if(strstr(dp->d_name,".zcfg")!=0){
+        fprintf(stderr,"rdr a4\n");
 	char toto1[1024];
 	sprintf(toto1,"%s%s",argv[1],dp->d_name);
 	char *toto=toto1;

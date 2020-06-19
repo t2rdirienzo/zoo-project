@@ -197,6 +197,7 @@ void parseIdentifier(maps* conf,char* conf_dir,char *identifier,char* buffer){
   }
   char *tmp0=zStrdup(buffer);
   sprintf(buffer,"%s.zcfg",tmp0);
+  fprintf(stderr,"rdr %s",buffer);
   free(tmp0);
   free(lid);
 }
@@ -1201,6 +1202,7 @@ int createRegistry (maps* m,registry ** r, char *reg_dir)
     }
     struct dirent *dp1;
     while ((dp1 = readdir (dirp1)) != NULL){
+      fprintf(stderr,"rdr a3\n");
       char* extn = strstr(dp1->d_name, ".zcfg");
       if(dp1->d_name[0] != '.' && extn != NULL && strlen(extn) == 5)
 	{

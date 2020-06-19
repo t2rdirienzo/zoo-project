@@ -244,6 +244,72 @@ int dumpBackFinalFile(maps* m,char* fbkp,char* fbkp1)
   return 1;
 }
 
+
+
+
+int 
+getUserWorkspacePath(maps* m,char* oldPatr,char* newPath,int maxSize){
+
+  map *rdrMAP = getMapFromMaps (m, "eoepcaUser", "user");
+  map *userWorkspace = getMapFromMaps (m, "eoepca", "userworkspace");
+ 
+  memset(newPath,0,maxSize);
+
+  if (rdrMAP && rdrMAP->value && userWorkspace && userWorkspace->value){
+    snprintf (newPath,maxSize, "%s/%s", userWorkspace->value,rdrMAP->value);
+  }else{
+    snprintf (newPath,maxSize, "%s", oldPatr);
+  }
+
+
+  fprintf(stderr,"%s\n",newPath);
+
+  return 0;
+}
+
+
+int
+addUserToMap(maps* conf){
+
+ int ei = 1;
+  char **orig = environ;
+  char *s=*orig;
+  
+  if(orig!=NULL)
+    for (; s; ei++ ) {
+      if(strstr(s,"=")!=NULL && strlen(strstr(s,"="))>1){
+	int len=strlen(s);
+	char* tmpName=zStrdup(s);
+	char* tmpValue=strstr(s,"=")+1;
+	char* tmpName1=(char*)malloc((1+(len-(strlen(tmpValue)+1)))*sizeof(char));
+	snprintf(tmpName1,(len-strlen(tmpValue)),"%s",tmpName);
+	
+  if(strstr(s,"HTTP_EOEPCA_USER")!=NULL && strlen(strstr(s,"="))>1 ){
+
+      maps *_tmpMaps = createMaps("eoepcaUser");
+  
+  if(_tmpMaps->content == NULL)
+	  _tmpMaps->content = createMap ("user",tmpValue);
+	else
+	  addToMap (_tmpMaps->content,"user",tmpValue);
+
+  if(conf){
+    addMapsToMaps (&conf, _tmpMaps);
+  }
+//  fprintf(stderr,"--> %s=%s \n", tmpName1, tmpValue );
+  }
+   
+	free(tmpName1);
+	free(tmpName);
+      }
+      s = *(orig+ei);
+    } 
+  return 0;
+}
+
+
+
+
 /**
  * Recursivelly parse zcfg starting from the ZOO-Kernel cwd.
  * Call the func function given in arguments after parsing the ZCFG file.
@@ -261,17 +327,23 @@ int dumpBackFinalFile(maps* m,char* fbkp,char* fbkp1)
  * @see inheritance, readServiceFile
  */
 int
-recursReaddirF ( maps * m, registry *r, void* doc1, void* n1, char *conf_dir,
+recursReaddirF ( maps * m, registry *r, void* doc1, void* n1, char *conf_dir_,
 		 //( maps * m, registry *r, xmlDocPtr doc, xmlNodePtr n, char *conf_dir,
 		 char *prefix, int saved_stdout, int level,
 		 void (func) (registry *, maps *, void*, void*, service *) )
 		 //void (func) (registry *, maps *, xmlDocPtr, xmlNodePtr, service *) )
 {
+
+  char conf_dir[1024];
+  getUserWorkspacePath(m,conf_dir_,conf_dir,1024);
+  fprintf(stderr,"2################%s##################\n",conf_dir);
+  fprintf(stderr,"2################%s##################\n",conf_dir);
+
+
   struct dirent *dp;
   int scount = 0;
   xmlDocPtr doc=(xmlDocPtr) doc1;
   xmlNodePtr n=(xmlNodePtr) n1;
-
   if (conf_dir == NULL)
     return 1;
   DIR *dirp = opendir (conf_dir);
@@ -331,6 +403,8 @@ recursReaddirF ( maps * m, registry *r, void* doc1, void* n1, char *conf_dir,
       }
     else
       {
+        // map* tmpMap=getMapFromMaps(m,"lenv",tmp1);
+        fprintf(stderr,"rdr a5b  %s \n",dp->d_name);
         char* extn = strstr(dp->d_name, ".zcfg");
         if(dp->d_name[0] != '.' && extn != NULL && strlen(extn) == 5 && strlen(dp->d_name)>6)
           {
@@ -453,8 +527,16 @@ void exitAndCleanUp(registry* zooRegistry, maps* m,
  */
 int fetchServicesForDescription(registry* zooRegistry, maps* m, char* r_inputs,
 				void (func) (registry *, maps *, void*, void*, service *),
-				void* doc, void* n, char* conf_dir, map* request_inputs,
+				void* doc, void* n, char* conf_dir_, map* request_inputs,
 				void (funcError) (maps*, map*) ){
+
+  char conf_dir[1024];
+  getUserWorkspacePath(m,conf_dir_,conf_dir,1024);
+  fprintf(stderr,"1################%s##################\n",conf_dir);
+  fprintf(stderr,"1################%s##################\n",conf_dir);
+  // char conf_dir[1024];
+
+
   char *orig = zStrdup (r_inputs);
   service* s1=NULL;
   int saved_stdout = zDup (fileno (stdout));
@@ -608,6 +690,7 @@ int fetchServicesForDescription(registry* zooRegistry, maps* m, char* r_inputs,
 	      }else /*TOTO*/{
 #endif
 		memset (buff, 0, 256);
+    fprintf(stderr,"rdr a6\n");
 		snprintf (buff, 256, "%s.zcfg", corig);
 		memset (buff1, 0, 1024);
 #ifdef DEBUG
@@ -1688,6 +1771,19 @@ runRequest (map ** inputs)
   fprintf (stderr, "***** END MAPS\n");
 #endif
 
+  addUserToMap(m);
+  // map *theServicePath = getMapFromMaps (m, "main", "servicePath");
+  // if (theServicePath && theServicePath->value ){
+  //   int theLen=(strlen(theServicePath->value)+1024+1)*sizeof(char);
+  //   char* tmpNewPath=(char*) malloc(theLen);
+  //   memset(tmpNewPath,0,theLen);
+  //   sprintf(tmpNewPath,"%s%s",theServicePath->value,"rdr"  );
+  //   free(theServicePath->value);
+  //   theServicePath->value=tmpNewPath;
+  // }
+  
+
+
   map *getPath = getMapFromMaps (m, "main", "gettextPath");
   if (getPath != NULL)
     {
@@ -1983,6 +2079,7 @@ runRequest (map ** inputs)
 	  if(orig[strlen(orig)-1]=='/')
 	    orig[strlen(orig)-1]=0;
 	  json_object* res1=json_object_new_object();
+
 	  int t=fetchServicesForDescription(NULL, m, orig,
 					    printGetCapabilitiesForProcessJ,
 					    NULL, (void*) res3, ntmp,
@@ -2016,6 +2113,7 @@ runRequest (map ** inputs)
 	    setMapInMaps (m, "lenv", "oIdentifier", cIdentifier);
 	  } 
 	  else {
+      fprintf(stderr,"rdr a7\n");
 	    snprintf (tmps1, 1024, "%s/%s.zcfg", ntmp, cIdentifier);
 #ifdef DEBUG
 	    fprintf (stderr, "Trying to load %s\n", tmps1);
@@ -2725,6 +2823,7 @@ runRequest (map ** inputs)
     setMapInMaps (m, "lenv", "oIdentifier", r_inputs->value);
   } 
   else {
+    fprintf(stderr,"rdr a8\n");
     snprintf (tmps1, 1024, "%s/%s.zcfg", conf_dir, r_inputs->value);
 #ifdef DEBUG
     fprintf (stderr, "Trying to load %s\n", tmps1);
