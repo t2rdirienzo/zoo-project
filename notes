@@ -32,6 +32,8 @@ curl  -v  -s -L "http://localhost:8888/wps3/processes/myservice" -H "accept: app
   sprintf(conf_dir,"/zooservices/rdr");
 
  
+getUserWorkspacePath(maps* m,char* oldPatr,char* newPath,int maxSize){
+
 
 addUserToMap
 
