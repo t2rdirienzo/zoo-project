@@ -1890,6 +1890,9 @@ runRequest (map ** inputs)
 
   //rdr
   addUserToMap(m);
+  maps* userMap=getMaps(m,"eoepcaUser");
+
+
   // map *theServicePath = getMapFromMaps (m, "main", "servicePath");
   // if (theServicePath && theServicePath->value ){
   //   int theLen=(strlen(theServicePath->value)+1024+1)*sizeof(char);

@@ -41,3 +41,11 @@ addUserToMap
 
 
   recursReaddirF
+
+
+  maps* userMap=getMaps(m,"eoepcaUser");
+
+      // maps* userMap=getMaps(m,"eoepcaUser");
+    if (userMap){
+      setMapInMaps (m, "lenv", "async","true");
+    }
